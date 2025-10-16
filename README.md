@@ -20,9 +20,6 @@ Le projet contient deux applications principales :
     *   Les barres de fréquence changent de couleur (vert → jaune → rouge) en fonction de leur intensité.
     *   L'affichage est lissé pour une meilleure expérience visuelle.
 
-<video src="use.mp4" width="500px"></video>
-
-
 ## Technologies
 
 *   Java (compilé avec la version 25)
