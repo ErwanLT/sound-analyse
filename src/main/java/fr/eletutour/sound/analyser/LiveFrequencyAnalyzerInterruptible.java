@@ -13,7 +13,7 @@ public class LiveFrequencyAnalyzerInterruptible {
 
 
     static void main(String[] args) throws Exception {
-        final float sampleRate = 44100.0f;
+        final float sampleRate = 96000.0f;
         final int bytesPerSample = 2; // 16 bits -> 2 bytes
         final int sampleCount = 1024; // puissance de 2 (1024)
         final int bufferSize = sampleCount * bytesPerSample; // octets lus à chaque lecture

@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class LiveAudioSpectrumVisualizer extends JPanel {
 
     private static final int SAMPLE_COUNT = 1024;
-    private static final float SAMPLE_RATE = 44100f;
+    private static final float SAMPLE_RATE = 96000f;
     private static final int BYTES_PER_SAMPLE = 2;
 
     private double[] magnitudes = new double[SAMPLE_COUNT / 2];
@@ -100,10 +100,16 @@ public class LiveAudioSpectrumVisualizer extends JPanel {
         int len = magnitudes.length;
         double max = Arrays.stream(magnitudes).max().orElse(1);
 
-        for (int i = 0; i < len; i++) {
+        // Using a logarithmic scale for the x-axis
+        double logBase = Math.log(len);
+
+        for (int i = 1; i < len; i++) { // Start from 1 to avoid log(0)
             double norm = magnitudes[i] / max;
             int barHeight = (int) (norm * h);
-            int x = (int) ((i / (double) len) * w);
+
+            // Calculate x position on a logarithmic scale
+            double log_i = Math.log(i);
+            int x = (int) (w * log_i / logBase);
 
             // Couleur dynamique (vert → jaune → rouge)
             float hue = (float) (0.33 - norm * 0.33); // 0.33=vert, 0.0=rouge
@@ -113,7 +119,7 @@ public class LiveAudioSpectrumVisualizer extends JPanel {
         }
 
         g2.setColor(Color.WHITE);
-        g2.drawString("Spectre Audio — " + (int) (SAMPLE_RATE / 2) + " Hz", 10, 20);
+        g2.drawString("Spectre Audio (Log) — " + (int) (SAMPLE_RATE / 2) + " Hz", 10, 20);
     }
 
     // FFT identique à avant
