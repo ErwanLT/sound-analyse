@@ -55,10 +55,23 @@ L'analyse démarre immédiatement. Pour l'arrêter, retournez dans la console et
 
 ### 2. Visualiseur de Spectre (GUI)
 
-Cette application ouvre une fenêtre qui affiche une visualisation en direct du spectre des fréquences captées par votre micro.
+Cette application ouvre une fenêtre qui affiche une visualisation en direct de l'audio capté par votre micro. Vous pouvez choisir le mode de visualisation en passant un argument au démarrage.
 
-**Lancement :**
+Les modes disponibles sont : `bars` (par défaut), `circle`, et `wave`.
+
+**Lancement (Barres - par défaut) :**
 ```bash
 mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVisualizer"
 ```
-L'analyse démarre immédiatement. Pour arrêter l'application, il suffit de fermer la fenêtre.
+*Note : l'argument `bars` est optionnel (`-Dexec.args="bars"`) car c'est le mode par défaut.*
+
+**Lancement (Cercle) :**
+```bash
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVisualizer" -Dexec.args="circle"
+```
+
+**Lancement (Onde) :**
+```bash
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVisualizer" -Dexec.args="wave"
+```
+Pour arrêter l'application, il suffit de fermer la fenêtre.
