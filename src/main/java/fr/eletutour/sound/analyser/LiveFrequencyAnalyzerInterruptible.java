@@ -13,12 +13,9 @@ public class LiveFrequencyAnalyzerInterruptible {
 
 
     static void main(String[] args) throws Exception {
-        final float sampleRate = 96000.0f;
-        final int bytesPerSample = 2; // 16 bits -> 2 bytes
-        final int sampleCount = 1024; // puissance de 2 (1024)
-        final int bufferSize = sampleCount * bytesPerSample; // octets lus à chaque lecture
+        final int bufferSize = AudioConstants.SAMPLE_COUNT * AudioConstants.BYTES_PER_SAMPLE; // octets lus à chaque lecture
 
-        AudioFormat format = new AudioFormat(sampleRate, 16, 1, true, false); // little-endian
+        AudioFormat format = new AudioFormat(AudioConstants.SAMPLE_RATE, 16, 1, true, false); // little-endian
         DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
         TargetDataLine microphone = (TargetDataLine) AudioSystem.getLine(info);
         microphone.open(format, bufferSize * 4);
@@ -29,7 +26,7 @@ public class LiveFrequencyAnalyzerInterruptible {
 
         Thread captureThread = new Thread(() -> {
             byte[] buffer = new byte[bufferSize];
-            double[] samples = new double[sampleCount];
+            double[] samples = new double[AudioConstants.SAMPLE_COUNT];
 
             IO.println("🎤 Analyse en cours... Parle, siffle ou tape. Appuie sur Entrée pour arrêter.");
 
@@ -41,7 +38,7 @@ public class LiveFrequencyAnalyzerInterruptible {
                 recorded.write(buffer, 0, bytesRead);
 
                 // Conversion bytes -> échantillons normalisés (-1.0 .. 1.0)
-                int samplesRead = Math.min(sampleCount, bytesRead / bytesPerSample);
+                int samplesRead = Math.min(AudioConstants.SAMPLE_COUNT, bytesRead / AudioConstants.BYTES_PER_SAMPLE);
                 for (int i = 0, s = 0; s < samplesRead; i += 2, s++) {
                     // little-endian -> low byte first
                     int low = buffer[i] & 0xFF;
@@ -50,8 +47,8 @@ public class LiveFrequencyAnalyzerInterruptible {
                     samples[s] = value / 32768.0; // normalisation
                 }
                 // Si on a moins d'échantillons que sampleCount, zero-pad
-                if (samplesRead < sampleCount) {
-                    Arrays.fill(samples, samplesRead, sampleCount, 0.0);
+                if (samplesRead < AudioConstants.SAMPLE_COUNT) {
+                    Arrays.fill(samples, samplesRead, AudioConstants.SAMPLE_COUNT, 0.0);
                 }
 
                 // Calcul FFT
@@ -63,7 +60,7 @@ public class LiveFrequencyAnalyzerInterruptible {
                     if (magnitudes[i] > magnitudes[maxIndex]) maxIndex = i;
                 }
 
-                double frequency = maxIndex * sampleRate / sampleCount;
+                double frequency = maxIndex * AudioConstants.SAMPLE_RATE / AudioConstants.SAMPLE_COUNT;
                 double magnitude = magnitudes[maxIndex];
 
                 // Affichage console : fréquence + barre d'intensité
@@ -161,8 +158,6 @@ public class LiveFrequencyAnalyzerInterruptible {
         // échelle simple, ajustable si nécessaire
         int len = (int) Math.min(60, magnitude * 50);
         if (len <= 0) return "";
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < len; i++) sb.append('█');
-        return " " + sb.toString();
+        return " " + "█".repeat(len);
     }
 }

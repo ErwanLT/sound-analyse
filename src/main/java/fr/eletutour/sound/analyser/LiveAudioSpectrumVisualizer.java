@@ -8,12 +8,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LiveAudioSpectrumVisualizer extends JPanel {
 
-    private static final int SAMPLE_COUNT = 1024;
-    private static final float SAMPLE_RATE = 96000f;
-    private static final int BYTES_PER_SAMPLE = 2;
-
-    private double[] magnitudes = new double[SAMPLE_COUNT / 2];
-    private final double[] smoothedMagnitudes = new double[SAMPLE_COUNT / 2];
+    private double[] magnitudes = new double[AudioConstants.SAMPLE_COUNT / 2];
+    private final double[] smoothedMagnitudes = new double[AudioConstants.SAMPLE_COUNT / 2];
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     static void main(String[] args) throws Exception {
@@ -30,14 +26,14 @@ public class LiveAudioSpectrumVisualizer extends JPanel {
     public void startCapture() {
         Thread captureThread = new Thread(() -> {
             try {
-                AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
+                AudioFormat format = new AudioFormat(AudioConstants.SAMPLE_RATE, 16, 1, true, false);
                 DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
                 TargetDataLine line = (TargetDataLine) AudioSystem.getLine(info);
-                line.open(format, SAMPLE_COUNT * BYTES_PER_SAMPLE * 2);
+                line.open(format, AudioConstants.SAMPLE_COUNT * AudioConstants.BYTES_PER_SAMPLE * 2);
                 line.start();
 
-                byte[] buffer = new byte[SAMPLE_COUNT * BYTES_PER_SAMPLE];
-                double[] samples = new double[SAMPLE_COUNT];
+                byte[] buffer = new byte[AudioConstants.SAMPLE_COUNT * AudioConstants.BYTES_PER_SAMPLE];
+                double[] samples = new double[AudioConstants.SAMPLE_COUNT];
 
                 IO.println("🎙️ Capture en cours... ferme la fenêtre pour arrêter.");
 
@@ -45,15 +41,15 @@ public class LiveAudioSpectrumVisualizer extends JPanel {
                     int bytesRead = line.read(buffer, 0, buffer.length);
                     if (bytesRead <= 0) continue;
 
-                    int samplesRead = Math.min(SAMPLE_COUNT, bytesRead / BYTES_PER_SAMPLE);
+                    int samplesRead = Math.min(AudioConstants.SAMPLE_COUNT, bytesRead / AudioConstants.BYTES_PER_SAMPLE);
                     for (int i = 0, s = 0; s < samplesRead; i += 2, s++) {
                         int low = buffer[i] & 0xFF;
                         int high = buffer[i + 1];
                         int value = (high << 8) | low;
                         samples[s] = value / 32768.0;
                     }
-                    if (samplesRead < SAMPLE_COUNT) {
-                        Arrays.fill(samples, samplesRead, SAMPLE_COUNT, 0.0);
+                    if (samplesRead < AudioConstants.SAMPLE_COUNT) {
+                        Arrays.fill(samples, samplesRead, AudioConstants.SAMPLE_COUNT, 0.0);
                     }
 
                     double[] newMagnitudes = computeFFT(samples);
@@ -119,7 +115,7 @@ public class LiveAudioSpectrumVisualizer extends JPanel {
         }
 
         g2.setColor(Color.WHITE);
-        g2.drawString("Spectre Audio (Log) — " + (int) (SAMPLE_RATE / 2) + " Hz", 10, 20);
+        g2.drawString("Spectre Audio (Log) — " + (int) (AudioConstants.SAMPLE_RATE / 2) + " Hz", 10, 20);
     }
 
     // FFT identique à avant
