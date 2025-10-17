@@ -193,13 +193,27 @@ public class LiveAudioSpectrumVisualizer extends JPanel {
         int w = getWidth();
         int h = getHeight();
         int halfH = h / 2;
+        double amplitudeMultiplier = 2.5; // Facteur d'amplification pour une meilleure visibilité
 
-        g2.setColor(Color.GREEN);
         for (int i = 0; i < samples.length - 1; i++) {
+            // On calcule l'amplitude visuelle, qui peut dépasser 1.0
+            double visualAmplitude = Math.abs(samples[i] * amplitudeMultiplier);
+            // On la limite à 1.0 pour le calcul de la couleur, afin que la teinte soit correcte
+            double clampedAmplitude = Math.min(1.0, visualAmplitude);
+
+            // La couleur varie du vert (0.33) au rouge (0.0) en fonction de l'amplitude visuelle
+            float hue = (float) (0.33 - (clampedAmplitude * 0.33));
+            g2.setColor(Color.getHSBColor(hue, 1.0f, 1.0f));
+
             int x1 = (int) ((double) i / samples.length * w);
-            int y1 = halfH - (int) (samples[i] * halfH * 0.8); // 0.8 pour ne pas toucher les bords
+            double y1_raw = halfH - (samples[i] * halfH * amplitudeMultiplier);
+            // On s'assure que la ligne ne dépasse pas les bords du panneau
+            int y1 = Math.max(0, Math.min(h - 1, (int) y1_raw));
+
             int x2 = (int) ((double) (i + 1) / samples.length * w);
-            int y2 = halfH - (int) (samples[i + 1] * halfH * 0.8);
+            double y2_raw = halfH - (samples[i + 1] * halfH * amplitudeMultiplier);
+            int y2 = Math.max(0, Math.min(h - 1, (int) y2_raw));
+
             g2.drawLine(x1, y1, x2, y2);
         }
     }
