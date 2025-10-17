@@ -22,12 +22,12 @@ public class SoundGenerator extends JPanel {
         SINE, SQUARE, TRIANGLE, SAWTOOTH
     }
 
-    private JSlider frequencySlider;
-    private JToggleButton onOffButton;
+    private final JSlider frequencySlider;
+    private final JToggleButton onOffButton;
     private JLabel frequencyLabel;
-    private ButtonGroup waveformGroup;
-    private JComboBox<String> scoreSelector;
-    private JButton playScoreButton;
+    private final ButtonGroup waveformGroup;
+    private final JComboBox<String> scoreSelector;
+    private final JButton playScoreButton;
 
     private static final Map<String, Double> noteFrequencies = new HashMap<>();
 
@@ -56,7 +56,6 @@ public class SoundGenerator extends JPanel {
     private static final Color BORDER_COLOR = new Color(150, 150, 150);
 
     private volatile boolean isPlaying = false;
-    private Thread playbackThread;
 
     public SoundGenerator() {
         super(new GridBagLayout());
@@ -283,7 +282,7 @@ public class SoundGenerator extends JPanel {
         if (isPlaying) return;
         isPlaying = true;
 
-        playbackThread = new Thread(() -> {
+        Thread playbackThread = new Thread(() -> {
             SourceDataLine line = null;
             try {
                 AudioFormat audioFormat = new AudioFormat(AudioConstants.SAMPLE_RATE, 16, 1, true, true);
@@ -340,7 +339,7 @@ public class SoundGenerator extends JPanel {
         isPlaying = false;
     }
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
