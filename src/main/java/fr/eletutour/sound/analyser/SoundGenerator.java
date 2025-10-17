@@ -11,16 +11,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SoundGenerator extends JPanel {
-
-    // Enum for waveform types
-    private enum Waveform {
-        SINE, SQUARE, TRIANGLE, SAWTOOTH
-    }
 
     private final JSlider frequencySlider;
     private final JToggleButton onOffButton;
@@ -29,33 +22,14 @@ public class SoundGenerator extends JPanel {
     private final JComboBox<String> scoreSelector;
     private final JButton playScoreButton;
 
-    private static final Map<String, Double> noteFrequencies = new HashMap<>();
-
-    static {
-        // Pre-populate note frequencies
-        noteFrequencies.put("C4", 261.63);
-        noteFrequencies.put("D4", 293.66);
-        noteFrequencies.put("Eb4", 311.13);
-        noteFrequencies.put("E4", 329.63);
-        noteFrequencies.put("F4", 349.23);
-        noteFrequencies.put("F#4", 369.99);
-        noteFrequencies.put("G4", 392.00);
-        noteFrequencies.put("A4", 440.00);
-        noteFrequencies.put("Bb4", 466.16);
-        noteFrequencies.put("B4", 493.88);
-        noteFrequencies.put("C5", 523.25);
-        noteFrequencies.put("D5", 587.32);
-        noteFrequencies.put("Eb5", 622.26);
-        noteFrequencies.put("E5", 659.26);
-        noteFrequencies.put("G5", 784.00);
-    }
-
+    // Colors inspired by the image
     private static final Color BG_COLOR = new Color(242, 183, 117);
     private static final Color COMPONENT_BG_COLOR = new Color(227, 207, 178);
     private static final Color TEXT_COLOR = new Color(50, 50, 50);
     private static final Color BORDER_COLOR = new Color(150, 150, 150);
 
     private volatile boolean isPlaying = false;
+    private Thread playbackThread;
 
     public SoundGenerator() {
         super(new GridBagLayout());
@@ -124,11 +98,11 @@ public class SoundGenerator extends JPanel {
         JPanel waveformPanel = new JPanel(new GridLayout(1, 4, 5, 5));
         waveformPanel.setBackground(BG_COLOR);
         waveformGroup = new ButtonGroup();
-        for (Waveform w : Waveform.values()) {
+        for (AudioConstants.Waveform w : AudioConstants.Waveform.values()) {
             JToggleButton waveButton = new JToggleButton(w.name());
             styleWaveButton(waveButton);
             waveButton.setActionCommand(w.name());
-            if (w == Waveform.SINE) waveButton.setSelected(true);
+            if (w == AudioConstants.Waveform.SINE) waveButton.setSelected(true);
             waveformGroup.add(waveButton);
             waveformPanel.add(waveButton);
         }
@@ -183,7 +157,6 @@ public class SoundGenerator extends JPanel {
         String selectedScore = (String) scoreSelector.getSelectedItem();
         if (selectedScore == null) return;
 
-        // Disable buttons during playback
         playScoreButton.setEnabled(false);
         onOffButton.setEnabled(false);
 
@@ -212,10 +185,9 @@ public class SoundGenerator extends JPanel {
                             continue;
                         }
 
-                        Double frequency = noteFrequencies.get(noteName);
+                        Double frequency = AudioConstants.noteFrequencies.get(noteName);
                         if (frequency == null) continue; // Skip unknown notes
 
-                        // Update slider on EDT
                         final int freqInt = frequency.intValue();
                         SwingUtilities.invokeLater(() -> frequencySlider.setValue(freqInt));
 
@@ -228,7 +200,6 @@ public class SoundGenerator extends JPanel {
             } catch (IOException | URISyntaxException | LineUnavailableException | NumberFormatException | InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                // Re-enable buttons on the EDT
                 SwingUtilities.invokeLater(() -> {
                     playScoreButton.setEnabled(true);
                     onOffButton.setEnabled(true);
@@ -239,11 +210,10 @@ public class SoundGenerator extends JPanel {
 
     private byte[] generateNote(double frequency, int durationMs, AudioFormat format) {
         int numSamples = (int) ((durationMs / 1000.0) * format.getSampleRate());
-        byte[] buffer = new byte[numSamples * 2]; // 16-bit audio
+        byte[] buffer = new byte[numSamples * 2];
         double angleIncrement = (2.0 * Math.PI * frequency) / format.getSampleRate();
         double currentAngle = 0.0;
 
-        // For simplicity, always use SINE for scores for now.
         for (int i = 0; i < buffer.length; i += 2) {
             double sampleValue = Math.sin(currentAngle);
             short pcmValue = (short) (sampleValue * Short.MAX_VALUE);
@@ -282,7 +252,7 @@ public class SoundGenerator extends JPanel {
         if (isPlaying) return;
         isPlaying = true;
 
-        Thread playbackThread = new Thread(() -> {
+        playbackThread = new Thread(() -> {
             SourceDataLine line = null;
             try {
                 AudioFormat audioFormat = new AudioFormat(AudioConstants.SAMPLE_RATE, 16, 1, true, true);
@@ -294,7 +264,7 @@ public class SoundGenerator extends JPanel {
                 byte[] buffer = new byte[1024];
 
                 while (isPlaying) {
-                    Waveform selectedWaveform = Waveform.valueOf(waveformGroup.getSelection().getActionCommand());
+                    AudioConstants.Waveform selectedWaveform = AudioConstants.Waveform.valueOf(waveformGroup.getSelection().getActionCommand());
                     int frequency = frequencySlider.getValue();
                     double angleIncrement = (2.0 * Math.PI * frequency) / audioFormat.getSampleRate();
 
@@ -320,7 +290,7 @@ public class SoundGenerator extends JPanel {
         playbackThread.start();
     }
 
-    private static short getPcmValue(double currentAngle, Waveform selectedWaveform) {
+    private static short getPcmValue(double currentAngle, AudioConstants.Waveform selectedWaveform) {
         double sampleValue = 0.0;
         double normalizedAngle = currentAngle % (2.0 * Math.PI);
 
@@ -331,7 +301,6 @@ public class SoundGenerator extends JPanel {
             case SAWTOOTH -> (normalizedAngle / Math.PI) - 1.0;
         };
 
-        // Volume is at max (Short.MAX_VALUE)
         return (short) (sampleValue * Short.MAX_VALUE);
     }
 
@@ -339,7 +308,7 @@ public class SoundGenerator extends JPanel {
         isPlaying = false;
     }
 
-    static void main(String[] args) {
+    static void main() {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
