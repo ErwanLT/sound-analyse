@@ -1,14 +1,19 @@
 package fr.eletutour.sound.analyser;
 
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SoundGenerator extends JPanel {
 
@@ -17,18 +22,41 @@ public class SoundGenerator extends JPanel {
         SINE, SQUARE, TRIANGLE, SAWTOOTH
     }
 
-    private final JSlider frequencySlider;
-    private final JToggleButton onOffButton;
+    private JSlider frequencySlider;
+    private JToggleButton onOffButton;
     private JLabel frequencyLabel;
-    private final ButtonGroup waveformGroup;
+    private ButtonGroup waveformGroup;
+    private JComboBox<String> scoreSelector;
+    private JButton playScoreButton;
 
-    // Colors inspired by the image
+    private static final Map<String, Double> noteFrequencies = new HashMap<>();
+
+    static {
+        // Pre-populate note frequencies
+        noteFrequencies.put("C4", 261.63);
+        noteFrequencies.put("D4", 293.66);
+        noteFrequencies.put("Eb4", 311.13);
+        noteFrequencies.put("E4", 329.63);
+        noteFrequencies.put("F4", 349.23);
+        noteFrequencies.put("F#4", 369.99);
+        noteFrequencies.put("G4", 392.00);
+        noteFrequencies.put("A4", 440.00);
+        noteFrequencies.put("Bb4", 466.16);
+        noteFrequencies.put("B4", 493.88);
+        noteFrequencies.put("C5", 523.25);
+        noteFrequencies.put("D5", 587.32);
+        noteFrequencies.put("Eb5", 622.26);
+        noteFrequencies.put("E5", 659.26);
+        noteFrequencies.put("G5", 784.00);
+    }
+
     private static final Color BG_COLOR = new Color(242, 183, 117);
     private static final Color COMPONENT_BG_COLOR = new Color(227, 207, 178);
     private static final Color TEXT_COLOR = new Color(50, 50, 50);
     private static final Color BORDER_COLOR = new Color(150, 150, 150);
 
     private volatile boolean isPlaying = false;
+    private Thread playbackThread;
 
     public SoundGenerator() {
         super(new GridBagLayout());
@@ -106,14 +134,125 @@ public class SoundGenerator extends JPanel {
             waveformPanel.add(waveButton);
         }
 
-        // Wrapper panel to keep the waveform buttons centered and at their preferred size
         JPanel waveWrapperPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         waveWrapperPanel.setBackground(BG_COLOR);
         waveWrapperPanel.add(waveformPanel);
 
         gbc.gridy = 3;
-        gbc.insets = new Insets(0, 0, 0, 0);
         add(waveWrapperPanel, gbc);
+        
+        // --- Row 4: Score Player ---
+        JPanel scorePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        scorePanel.setBackground(BG_COLOR);
+
+        scoreSelector = new JComboBox<>();
+        loadPartitions(); // Populate the dropdown
+        scorePanel.add(new JLabel("Score:"));
+        scorePanel.add(scoreSelector);
+
+        playScoreButton = new JButton("Play Score");
+        styleMiniButton(playScoreButton);
+        playScoreButton.addActionListener(e -> playScore());
+        scorePanel.add(playScoreButton);
+
+        gbc.gridy = 4;
+        gbc.insets = new Insets(10, 0, 0, 0);
+        add(scorePanel, gbc);
+    }
+
+    private void loadPartitions() {
+        try {
+            URL resource = getClass().getClassLoader().getResource("partitions");
+            if (resource == null) {
+                System.err.println("Partitions directory not found!");
+                return;
+            }
+
+            File dir = new File(resource.toURI());
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    scoreSelector.addItem(file.getName());
+                }
+            }
+        } catch (URISyntaxException | NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playScore() {
+        String selectedScore = (String) scoreSelector.getSelectedItem();
+        if (selectedScore == null) return;
+
+        // Disable buttons during playback
+        playScoreButton.setEnabled(false);
+        onOffButton.setEnabled(false);
+
+        new Thread(() -> {
+            try {
+                URL resource = getClass().getClassLoader().getResource("partitions/" + selectedScore);
+                if (resource == null) {
+                    throw new IOException("Score file not found: " + selectedScore);
+                }
+                List<String> lines = Files.readAllLines(Paths.get(resource.toURI()));
+
+                AudioFormat audioFormat = new AudioFormat(AudioConstants.SAMPLE_RATE, 16, 1, true, true);
+                try (SourceDataLine line = AudioSystem.getSourceDataLine(audioFormat)) {
+                    line.open(audioFormat);
+                    line.start();
+
+                    for (String l : lines) {
+                        String[] parts = l.split(",");
+                        if (parts.length != 2) continue;
+
+                        String noteName = parts[0].trim();
+                        int durationMs = Integer.parseInt(parts[1].trim());
+
+                        if (noteName.equalsIgnoreCase("REST")) {
+                            Thread.sleep(durationMs);
+                            continue;
+                        }
+
+                        Double frequency = noteFrequencies.get(noteName);
+                        if (frequency == null) continue; // Skip unknown notes
+
+                        // Update slider on EDT
+                        final int freqInt = frequency.intValue();
+                        SwingUtilities.invokeLater(() -> frequencySlider.setValue(freqInt));
+
+                        byte[] buffer = generateNote(frequency, durationMs, audioFormat);
+                        line.write(buffer, 0, buffer.length);
+                    }
+                    line.drain();
+                }
+
+            } catch (IOException | URISyntaxException | LineUnavailableException | NumberFormatException | InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                // Re-enable buttons on the EDT
+                SwingUtilities.invokeLater(() -> {
+                    playScoreButton.setEnabled(true);
+                    onOffButton.setEnabled(true);
+                });
+            }
+        }).start();
+    }
+
+    private byte[] generateNote(double frequency, int durationMs, AudioFormat format) {
+        int numSamples = (int) ((durationMs / 1000.0) * format.getSampleRate());
+        byte[] buffer = new byte[numSamples * 2]; // 16-bit audio
+        double angleIncrement = (2.0 * Math.PI * frequency) / format.getSampleRate();
+        double currentAngle = 0.0;
+
+        // For simplicity, always use SINE for scores for now.
+        for (int i = 0; i < buffer.length; i += 2) {
+            double sampleValue = Math.sin(currentAngle);
+            short pcmValue = (short) (sampleValue * Short.MAX_VALUE);
+            buffer[i] = (byte) (pcmValue >> 8);
+            buffer[i + 1] = (byte) pcmValue;
+            currentAngle += angleIncrement;
+        }
+        return buffer;
     }
 
     private void styleBigButton(JToggleButton button) {
@@ -144,7 +283,7 @@ public class SoundGenerator extends JPanel {
         if (isPlaying) return;
         isPlaying = true;
 
-        Thread playbackThread = new Thread(() -> {
+        playbackThread = new Thread(() -> {
             SourceDataLine line = null;
             try {
                 AudioFormat audioFormat = new AudioFormat(AudioConstants.SAMPLE_RATE, 16, 1, true, true);
@@ -183,9 +322,10 @@ public class SoundGenerator extends JPanel {
     }
 
     private static short getPcmValue(double currentAngle, Waveform selectedWaveform) {
+        double sampleValue = 0.0;
         double normalizedAngle = currentAngle % (2.0 * Math.PI);
 
-        double sampleValue = switch (selectedWaveform) {
+        sampleValue = switch (selectedWaveform) {
             case SINE -> Math.sin(currentAngle);
             case SQUARE -> Math.signum(Math.sin(currentAngle));
             case TRIANGLE -> (2.0 / Math.PI) * Math.asin(Math.sin(currentAngle));
@@ -200,7 +340,7 @@ public class SoundGenerator extends JPanel {
         isPlaying = false;
     }
 
-    static void main() {
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
