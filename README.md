@@ -1,30 +1,21 @@
-# Analyseur de Son
+# Sound Tools - Analyse et Synthèse Audio
 
-Ce projet est une collection d'outils d'analyse audio en temps réel écrits en Java. Il utilise l'API `javax.sound.sampled` pour capturer l'audio du microphone et effectue une Transformation de Fourier Rapide (FFT) pour analyser les fréquences.
+Ce projet est une collection d'outils audio en Java, permettant à la fois l'analyse de son en temps réel et la synthèse sonore interactive.
 
-Le projet contient deux applications principales :
-1.  Un analyseur de fréquence en ligne de commande.
-2.  Un visualiseur de spectre audio avec une interface graphique (GUI).
+## Applications
 
-## Fonctionnalités
+Le projet contient quatre applications principales :
 
-*   **Analyseur de Fréquence (CLI) :**
-    *   Capture l'audio en temps réel depuis le microphone.
-    *   Calcule la fréquence dominante et son intensité.
-    *   Affiche les résultats en continu dans la console.
-    *   Permet d'arrêter la capture et de sauvegarder l'enregistrement dans un fichier `enregistrement.wav`.
-
-*   **Visualiseur de Spectre (GUI) :**
-    *   Ouvre une fenêtre affichant le spectre de fréquences en direct.
-    *   Utilise une échelle logarithmique pour une meilleure représentation des fréquences audibles.
-    *   Les barres de fréquence changent de couleur (vert → jaune → rouge) en fonction de leur intensité.
-    *   L'affichage est lissé pour une meilleure expérience visuelle.
+1.  **Analyseur de Fréquence (CLI) :** Capture l'audio du microphone et affiche la fréquence dominante en temps réel dans la console.
+2.  **Visualiseur de Spectre (GUI) :** Affiche une visualisation graphique du spectre de fréquences de l'audio capté par le microphone.
+3.  **Mini Synthétiseur (GUI) :** Transforme le clavier de l'ordinateur en un piano simple avec une visualisation des touches.
+4.  **Générateur de Son (GUI) :** Un synthétiseur plus avancé pour générer des sons, choisir des formes d'onde et jouer des partitions.
 
 ## Technologies
 
-*   Java (compilé avec la version 25)
+*   Java (compilé avec la version 21)
 *   Maven pour la gestion du projet
-*   Java Swing pour l'interface graphique
+*   Java Swing pour les interfaces graphiques
 
 ## Prérequis
 
@@ -39,9 +30,9 @@ Pour compiler le projet et installer les dépendances, exécutez la commande sui
 mvn clean install
 ```
 
-## Utilisation
+## Lancement des Applications
 
-Vous pouvez lancer l'une des deux applications à l'aide de Maven.
+Vous pouvez lancer chacune des applications à l'aide de Maven.
 
 ### 1. Analyseur de Fréquence (Console)
 
@@ -51,27 +42,40 @@ Cette application affiche la fréquence sonore dominante détectée par votre mi
 ```bash
 mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveFrequencyAnalyzerInterruptible"
 ```
-L'analyse démarre immédiatement. Pour l'arrêter, retournez dans la console et appuyez sur la touche **Entrée**. Un fichier `enregistrement.wav` contenant la session audio sera créé à la racine du projet.
+Pour l'arrêter, retournez dans la console et appuyez sur **Entrée**.
 
 ### 2. Visualiseur de Spectre (GUI)
 
-Cette application ouvre une fenêtre qui affiche une visualisation en direct de l'audio capté par votre micro. Vous pouvez choisir le mode de visualisation en passant un argument au démarrage.
+Cette application affiche une visualisation en direct de l'audio. Plusieurs modes sont disponibles (`bars`, `circle`, `wave`).
 
-Les modes disponibles sont : `bars` (par défaut), `circle`, et `wave`.
-
-**Lancement (Barres - par défaut) :**
+**Lancement (mode "barres") :**
 ```bash
-mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVisualizer"
-```
-*Note : l'argument `bars` est optionnel (`-Dexec.args="bars"`) car c'est le mode par défaut.*
-
-**Lancement (Cercle) :**
-```bash
-mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVisualizer" -Dexec.args="circle"
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVisualizer" -Dexec.args="bars"
 ```
 
-**Lancement (Onde) :**
+### 3. Mini Synthétiseur (GUI)
+
+Transforme votre clavier en piano. La disposition des touches est optimisée pour un clavier AZERTY.
+
+*   **Touches blanches :** `q`, `s`, `d`, `f`, `g`, `h`, `j`, `k`, `l`, `m`
+*   **Touches noires :** `z`, `e`, `t`, `y`, `u`, `i`, `o`
+
+
+**Lancement :**
 ```bash
-mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVisualizer" -Dexec.args="wave"
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.Synthesiser"
 ```
-Pour arrêter l'application, il suffit de fermer la fenêtre.
+
+### 4. Générateur de Son (GUI)
+
+Un synthétiseur avancé pour générer des sons et jouer des partitions.
+
+**Fonctionnalités :**
+*   Fréquence réglable via un curseur.
+*   Choix de la forme d'onde (SINUS, CARRÉ, etc.).
+*   Lecteur de partitions depuis les fichiers `.txt`.
+
+**Lancement :**
+```bash
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.SoundGenerator"
+```

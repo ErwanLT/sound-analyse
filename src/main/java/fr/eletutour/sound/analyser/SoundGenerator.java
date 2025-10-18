@@ -308,7 +308,7 @@ public class SoundGenerator extends JPanel {
         isPlaying = false;
     }
 
-    static void main() {
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
