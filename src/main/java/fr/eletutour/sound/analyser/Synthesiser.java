@@ -43,11 +43,19 @@ public class Synthesiser extends JFrame implements KeyListener {
 
     private final Set<Character> pressedKeys = new HashSet<>();
     private boolean running = true;
+    private final PianoKeyboardPanel pianoKeyboard;
 
     public Synthesiser() {
         setTitle("Mini Synthétiseur");
-        setSize(300, 200);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        pianoKeyboard = new PianoKeyboardPanel(pressedKeys);
+        add(pianoKeyboard);
+
+        pack(); // Ajuste la taille de la fenêtre au contenu
+        setResizable(false);
+        setLocationRelativeTo(null); // Centre la fenêtre
+
         addKeyListener(this);
         setVisible(true);
 
@@ -89,6 +97,7 @@ public class Synthesiser extends JFrame implements KeyListener {
         synchronized (pressedKeys) {
             pressedKeys.add(e.getKeyChar());
         }
+        pianoKeyboard.repaint();
     }
 
     @Override
@@ -96,6 +105,7 @@ public class Synthesiser extends JFrame implements KeyListener {
         synchronized (pressedKeys) {
             pressedKeys.remove(e.getKeyChar());
         }
+        pianoKeyboard.repaint();
     }
 
     @Override
