@@ -46,9 +46,17 @@ public class Synthesiser extends JFrame {
     private final PianoKeyboardPanel pianoKeyboard;
     private volatile AudioConstants.Waveform selectedWaveform = AudioConstants.Waveform.SINE;
 
+    private static final int NUM_VOICES = 8;
+    private final Voice[] voices;
+
     public Synthesiser() {
         setTitle("Mini Synthétiseur");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        voices = new Voice[NUM_VOICES];
+        for (int i = 0; i < NUM_VOICES; i++) {
+            voices[i] = new Voice();
+        }
 
         pianoKeyboard = new PianoKeyboardPanel(pressedKeys);
 
@@ -98,6 +106,14 @@ public class Synthesiser extends JFrame {
         }
     }
 
+    private Voice findAvailableVoice() {
+        for (Voice voice : voices) {
+            if (voice.state == Voice.State.INACTIVE) {
+                return voice;
+            }
+        }
+        return null;
+    }
 
     private class KeyAction extends AbstractAction {
         private final char keyChar;
@@ -112,9 +128,20 @@ public class Synthesiser extends JFrame {
         public void actionPerformed(ActionEvent e) {
             synchronized (pressedKeys) {
                 if (isPress) {
-                    pressedKeys.add(keyChar);
+                    if (!pressedKeys.contains(keyChar)) {
+                        Voice voice = findAvailableVoice();
+                        if (voice != null) {
+                            voice.press(keyChar, keyToFreq.get(keyChar));
+                            pressedKeys.add(keyChar);
+                        }
+                    }
                 } else {
                     pressedKeys.remove(keyChar);
+                    for (Voice voice : voices) {
+                        if (voice.key == keyChar) {
+                            voice.release();
+                        }
+                    }
                 }
             }
             pianoKeyboard.repaint();
@@ -123,40 +150,109 @@ public class Synthesiser extends JFrame {
 
     private void soundLoop() {
         try {
-            AudioFormat af = new AudioFormat(AudioConstants.SAMPLE_RATE, 8, 1, true, false);
+            AudioFormat af = new AudioFormat(AudioConstants.SAMPLE_RATE, 8, 1, true, true);
             SourceDataLine line = AudioSystem.getSourceDataLine(af);
-            line.open(af);
+            line.open(af, 4096); // Increased buffer size in the audio system
             line.start();
-            byte[] buffer = new byte[1];
-            double t = 0;
+            byte[] buffer = new byte[1024];
+
             while (true) {
-                double sample = 0;
-                synchronized (pressedKeys) {
-                    for (char k : pressedKeys) {
-                        Double f = keyToFreq.get(k);
-                        if (f != null) {
-                            double angle = 2 * Math.PI * f * t / AudioConstants.SAMPLE_RATE;
-                            double sampleValue = 0;
-                            switch (selectedWaveform) {
-                                case SINE -> sampleValue = Math.sin(angle);
-                                case SQUARE -> sampleValue = Math.signum(Math.sin(angle));
-                                case TRIANGLE -> sampleValue = (2.0 / Math.PI) * Math.asin(Math.sin(angle));
-                                case SAWTOOTH -> {
-                                    double normalizedAngle = angle % (2.0 * Math.PI);
-                                    sampleValue = (normalizedAngle / Math.PI) - 1.0;
-                                }
-                            }
-                            sample += sampleValue;
-                        }
+                for (int i = 0; i < buffer.length / 2; i++) {
+                    double mixedSample = 0;
+                    for (Voice voice : voices) {
+                        mixedSample += voice.getNextSample();
                     }
+                    mixedSample = Math.max(-1.0, Math.min(1.0, mixedSample));
+
+                    short pcmValue = (short) (mixedSample * Short.MAX_VALUE);
+                    buffer[i * 2] = (byte) (pcmValue >> 8);
+                    buffer[i * 2 + 1] = (byte) pcmValue;
                 }
-                sample /= Math.max(1, pressedKeys.size()); // Avoid saturation
-                buffer[0] = (byte) (sample * 127);
-                line.write(buffer, 0, 1);
-                t++;
+                line.write(buffer, 0, buffer.length);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private class Voice {
+        private double frequency;
+        private double position = 0.0;
+        private char key = 0;
+        private double currentAmplitude = 0.0;
+
+        private State state = State.INACTIVE;
+        private enum State { INACTIVE, ATTACK, DECAY, SUSTAIN, RELEASE }
+
+        // ADSR times in seconds
+        private static final double ATTACK_TIME = 0.05;
+        private static final double DECAY_TIME = 0.1;
+        private static final double SUSTAIN_LEVEL = 0.7;
+        private static final double RELEASE_TIME = 0.3;
+
+        // Rates calculated from times
+        private static final double ATTACK_RATE = 1.0 / (ATTACK_TIME * AudioConstants.SAMPLE_RATE);
+        private static final double DECAY_RATE = (1.0 - SUSTAIN_LEVEL) / (DECAY_TIME * AudioConstants.SAMPLE_RATE);
+        private static final double RELEASE_RATE = SUSTAIN_LEVEL / (RELEASE_TIME * AudioConstants.SAMPLE_RATE);
+
+        void press(char key, double frequency) {
+            this.key = key;
+            this.frequency = frequency;
+            this.state = State.ATTACK;
+            this.position = 0;
+        }
+
+        void release() {
+            if (state != State.INACTIVE) {
+                this.state = State.RELEASE;
+            }
+        }
+
+        double getNextSample() {
+            if (state == State.INACTIVE) return 0.0;
+
+            switch (state) {
+                case ATTACK:
+                    currentAmplitude += ATTACK_RATE;
+                    if (currentAmplitude >= 1.0) {
+                        currentAmplitude = 1.0;
+                        state = State.DECAY;
+                    }
+                    break;
+                case DECAY:
+                    currentAmplitude -= DECAY_RATE;
+                    if (currentAmplitude <= SUSTAIN_LEVEL) {
+                        currentAmplitude = SUSTAIN_LEVEL;
+                        state = State.SUSTAIN;
+                    }
+                    break;
+                case SUSTAIN:
+                    break;
+                case RELEASE:
+                    currentAmplitude -= RELEASE_RATE;
+                    if (currentAmplitude <= 0.0) {
+                        currentAmplitude = 0.0;
+                        state = State.INACTIVE;
+                        key = 0;
+                    }
+                    break;
+            }
+
+            double angle = position * 2 * Math.PI;
+            double sampleValue = switch (selectedWaveform) {
+                case SINE -> Math.sin(angle);
+                case SQUARE -> Math.signum(Math.sin(angle));
+                case TRIANGLE -> (2.0 / Math.PI) * Math.asin(Math.sin(angle));
+                case SAWTOOTH -> {
+                    double normalizedAngle = (position * 2 * Math.PI) % (2.0 * Math.PI);
+                    yield (normalizedAngle / Math.PI) - 1.0;
+                }
+            };
+
+            position += frequency / AudioConstants.SAMPLE_RATE;
+            if (position > 1.0) position -= 1.0;
+
+            return sampleValue * currentAmplitude;
         }
     }
 
