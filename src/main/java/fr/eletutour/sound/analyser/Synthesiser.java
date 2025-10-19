@@ -150,9 +150,9 @@ public class Synthesiser extends JFrame {
 
     private void soundLoop() {
         try {
-            AudioFormat af = new AudioFormat(AudioConstants.SAMPLE_RATE, 8, 1, true, true);
+            AudioFormat af = new AudioFormat(AudioConstants.SAMPLE_RATE, 16, 1, true, true);
             SourceDataLine line = AudioSystem.getSourceDataLine(af);
-            line.open(af, 4096); // Increased buffer size in the audio system
+            line.open(af, 4096);
             line.start();
             byte[] buffer = new byte[1024];
 
@@ -162,7 +162,10 @@ public class Synthesiser extends JFrame {
                     for (Voice voice : voices) {
                         mixedSample += voice.getNextSample();
                     }
-                    mixedSample = Math.max(-1.0, Math.min(1.0, mixedSample));
+
+                    // Apply master volume and soft clipping
+                    mixedSample *= 0.25; // Reduce volume to provide headroom
+                    mixedSample = Math.tanh(mixedSample);
 
                     short pcmValue = (short) (mixedSample * Short.MAX_VALUE);
                     buffer[i * 2] = (byte) (pcmValue >> 8);
