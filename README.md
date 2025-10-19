@@ -8,8 +8,8 @@ Le projet contient quatre applications principales :
 
 1.  **Analyseur de Fréquence (CLI) :** Capture l'audio du microphone et affiche la fréquence dominante en temps réel dans la console.
 2.  **Visualiseur de Spectre (GUI) :** Affiche une visualisation graphique du spectre de fréquences de l'audio capté par le microphone.
-3.  **Mini Synthétiseur (GUI) :** Transforme le clavier de l'ordinateur en un piano simple avec une visualisation des touches.
-4.  **Générateur de Son (GUI) :** Un synthétiseur plus avancé pour générer des sons, choisir des formes d'onde et jouer des partitions.
+3.  **Mini Synthétiseur (GUI) :** Un synthétiseur polyphonique complet avec des contrôles de mise en forme du son.
+4.  **Générateur de Son (GUI) :** Un autre synthétiseur avancé pour générer des sons et jouer des partitions.
 
 ## Technologies
 
@@ -55,15 +55,19 @@ mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.LiveAudioSpectrumVis
 
 ### 3. Mini Synthétiseur (GUI)
 
-Transforme votre clavier en piano. La disposition des touches est optimisée pour un clavier AZERTY.
+Un synthétiseur polyphonique soustractif doté d'un clavier de piano virtuel.
 
-*   **Touches blanches :** `q`, `s`, `d`, `f`, `g`, `h`, `j`, `k`, `l`, `m`
-*   **Touches noires :** `z`, `e`, `t`, `y`, `u`, `i`, `o`
-
+**Fonctionnalités :**
+*   **Polyphonie :** 8 voix simultanées.
+*   **Clavier :** Jouable avec un clavier AZERTY (`q,s,d...` pour les touches blanches, `z,e,t...` pour les noires).
+*   **Oscillateurs :** Choix entre 4 formes d'onde (SINE, SQUARE, TRIANGLE, SAWTOOTH).
+*   **Enveloppe ADSR :** Des curseurs permettent de régler les temps d'**Attaque** et de **Relâchement (Release)**.
+*   **Filtre :** Un filtre passe-bas avec contrôle de la **Fréquence de coupure (Cutoff)** et de la **Résonance**.
+*   **Pitch Control :** Un curseur pour transposer la hauteur des notes.
 
 **Lancement :**
 ```bash
-mvn exec:java -Dexec.mainClass="fr.eletutour.sound.generation.synthe.Synthesiser"
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.Synthesiser"
 ```
 
 ### 4. Générateur de Son (GUI)
@@ -77,5 +81,5 @@ Un synthétiseur avancé pour générer des sons et jouer des partitions.
 
 **Lancement :**
 ```bash
-mvn exec:java -Dexec.mainClass="fr.eletutour.sound.generation.SoundGenerator"
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.SoundGenerator"
 ```
