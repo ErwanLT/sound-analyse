@@ -43,7 +43,6 @@ public class Synthesiser extends JFrame {
     }
 
     private final Set<Character> pressedKeys = new HashSet<>();
-    private boolean running = true;
     private final PianoKeyboardPanel pianoKeyboard;
     private volatile AudioConstants.Waveform selectedWaveform = AudioConstants.Waveform.SINE;
 
@@ -130,7 +129,7 @@ public class Synthesiser extends JFrame {
             line.start();
             byte[] buffer = new byte[1];
             double t = 0;
-            while (running) {
+            while (true) {
                 double sample = 0;
                 synchronized (pressedKeys) {
                     for (char k : pressedKeys) {
@@ -156,8 +155,6 @@ public class Synthesiser extends JFrame {
                 line.write(buffer, 0, 1);
                 t++;
             }
-            line.drain();
-            line.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
