@@ -1,4 +1,4 @@
-package fr.eletutour.sound.analyser;
+package fr.eletutour.sound.generation.synthe;
 
 import javax.swing.*;
 import java.awt.*;

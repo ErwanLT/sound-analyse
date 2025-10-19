@@ -1,4 +1,4 @@
-package fr.eletutour.sound.analyser;
+package fr.eletutour.sound.constant;
 
 import java.util.HashMap;
 import java.util.Map;

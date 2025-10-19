@@ -1,4 +1,6 @@
-package fr.eletutour.sound.analyser;
+package fr.eletutour.sound.generation;
+
+import fr.eletutour.sound.constant.AudioConstants;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
