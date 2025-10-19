@@ -63,7 +63,7 @@ Transforme votre clavier en piano. La disposition des touches est optimisée pou
 
 **Lancement :**
 ```bash
-mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.Synthesiser"
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.generation.synthe.Synthesiser"
 ```
 
 ### 4. Générateur de Son (GUI)
@@ -77,5 +77,5 @@ Un synthétiseur avancé pour générer des sons et jouer des partitions.
 
 **Lancement :**
 ```bash
-mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.SoundGenerator"
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.generation.SoundGenerator"
 ```
