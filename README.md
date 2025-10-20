@@ -70,6 +70,9 @@ Un synthétiseur polyphonique soustractif doté d'un clavier de piano virtuel.
 mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.Synthesiser"
 ```
 
+<img width="613" height="423" alt="image" src="https://github.com/user-attachments/assets/28f10090-afd6-4998-ae4e-4ff3bd915ac6" />
+
+
 ### 4. Générateur de Son (GUI)
 
 Un synthétiseur avancé pour générer des sons et jouer des partitions.
