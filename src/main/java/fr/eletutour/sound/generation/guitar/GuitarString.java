@@ -10,8 +10,8 @@ public class GuitarString {
 
     private final Queue<Double> ringBuffer;
     private final int capacity;
-    private boolean active = true;
     private int tickCount = 0;
+    private double envelope = 1.0;
 
     public GuitarString(double frequency) {
         this.capacity = (int) (AudioConstants.SAMPLE_RATE / frequency);
@@ -25,7 +25,6 @@ public class GuitarString {
 
     public double getNextSample() {
         if (ringBuffer.isEmpty()) {
-            active = false;
             return 0.0;
         }
 
@@ -36,18 +35,20 @@ public class GuitarString {
         double newSample = (first + second) * 0.5;
         ringBuffer.add(newSample);
 
+        // Apply a smooth exponential decay envelope, similar to the visual decay time constant
+        envelope = Math.exp(-tickCount / (AudioConstants.SAMPLE_RATE * 0.4));
+
         tickCount++;
-        return newSample;
+        return newSample * envelope;
     }
 
     public boolean isActive() {
-        // The sound naturally decays, but we can consider it inactive after a certain time
-        return active && tickCount < AudioConstants.SAMPLE_RATE * 2; // 2 seconds lifetime
+        // The string is inactive when the envelope has faded out
+        return envelope > 0.005;
     }
 
     public double getVibrationAmplitude() {
-        // Simple decay function for visual amplitude
-        double time = tickCount / AudioConstants.SAMPLE_RATE;
-        return Math.max(0, 1.0 - time / 1.5); // Decays over 1.5s
+        // This method can be used by a visualizer if needed
+        return envelope;
     }
 }
