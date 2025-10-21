@@ -119,3 +119,6 @@ Une guitare virtuelle qui simule le son de cordes pincées grâce à l'algorithm
 ```bash
 mvn exec:java -Dexec.mainClass="fr.eletutour.sound.generation.guitar.VirtualGuitar"
 ```
+
+<img width="805" height="439" alt="image" src="https://github.com/user-attachments/assets/8c2944e2-37aa-425d-bd67-bc148448e196" />
+
