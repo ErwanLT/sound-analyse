@@ -87,6 +87,22 @@ public class VirtualGuitar extends JFrame {
                 }
             }
         });
+
+        // Chord definitions: { {stringIndex, fretNumber}, ... }
+        // Fret number -1 means muted string
+        Map<Character, int[][]> chordDefinitions = Map.of(
+            'A', new int[][]{{0, -1}, {1, 3}, {2, 2}, {3, 0}, {4, 1}, {5, 0}}, // C Major
+            'Z', new int[][]{{0, 3}, {1, 2}, {2, 0}, {3, 0}, {4, 0}, {5, 3}}, // G Major
+            'E', new int[][]{{0, -1}, {1, -1}, {2, 0}, {3, 2}, {4, 3}, {5, 2}}, // D Major
+            'R', new int[][]{{0, 0}, {1, 2}, {2, 2}, {3, 0}, {4, 0}, {5, 0}}  // E Minor
+        );
+
+        for (Map.Entry<Character, int[][]> entry : chordDefinitions.entrySet()) {
+            char key = entry.getKey();
+            int[][] chordShape = entry.getValue();
+            im.put(KeyStroke.getKeyStroke("pressed " + key), "press_chord_" + key);
+            am.put("press_chord_" + key, new ChordAction(chordShape));
+        }
     }
 
     private static final int NUM_STRINGS = 6;
@@ -116,6 +132,52 @@ public class VirtualGuitar extends JFrame {
 
                     // Only replace if the string is not already ringing loudly
                     if (!activeStrings.containsKey(i) || activeStrings.get(i).getVibrationAmplitude() < 0.1) {
+                        activeStrings.put(i, new GuitarString(sympatheticAdjustedFrequency, SYMPATHETIC_RESONANCE_FACTOR));
+                    }
+                }
+            }
+        }
+    }
+
+    private class ChordAction extends AbstractAction {
+        private final int[][] chordShape;
+        private static final double SYMPATHETIC_RESONANCE_FACTOR = 0.15;
+
+        ChordAction(int[][] chordShape) {
+            this.chordShape = chordShape;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (int[] stringFret : chordShape) {
+                int stringIndex = stringFret[0];
+                int fretNumber = stringFret[1];
+
+                if (fretNumber != -1) { // If not muted
+                    double originalFrequency = STRING_FREQUENCIES[stringIndex];
+                    // Adjust frequency based on fret number and capo
+                    double adjustedFrequency = originalFrequency * Math.pow(2, (fretNumber + capoFret) / 12.0);
+
+                    activeStrings.put(stringIndex, new GuitarString(adjustedFrequency));
+                    guitarPanel.pluckString(stringIndex);
+                }
+            }
+
+            // Trigger sympathetic resonance for all strings not explicitly played or muted
+            for (int i = 0; i < NUM_STRINGS; i++) {
+                boolean isPlayedInChord = false;
+                for (int[] stringFret : chordShape) {
+                    if (stringFret[0] == i) {
+                        isPlayedInChord = true;
+                        break;
+                    }
+                }
+
+                if (!isPlayedInChord) {
+                    // Only replace if the string is not already ringing loudly
+                    if (!activeStrings.containsKey(i) || activeStrings.get(i).getVibrationAmplitude() < 0.1) {
+                        double sympatheticOriginalFrequency = STRING_FREQUENCIES[i];
+                        double sympatheticAdjustedFrequency = sympatheticOriginalFrequency * Math.pow(2, capoFret / 12.0); // Sympathetic strings are affected by capo only
                         activeStrings.put(i, new GuitarString(sympatheticAdjustedFrequency, SYMPATHETIC_RESONANCE_FACTOR));
                     }
                 }
