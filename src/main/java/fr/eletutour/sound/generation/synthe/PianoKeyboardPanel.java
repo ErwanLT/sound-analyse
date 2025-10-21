@@ -2,9 +2,9 @@ package fr.eletutour.sound.generation.synthe;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashMap;
 
 public class PianoKeyboardPanel extends JPanel {
 

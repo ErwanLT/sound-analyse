@@ -2,6 +2,7 @@ package fr.eletutour.sound.analyser;
 
 import fr.eletutour.sound.constant.AudioConstants;
 
+import javax.sound.sampled.AudioFileFormat.Type;
 import javax.sound.sampled.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,7 +10,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.sound.sampled.AudioFileFormat.Type;
 
 public class LiveFrequencyAnalyzerInterruptible {
 

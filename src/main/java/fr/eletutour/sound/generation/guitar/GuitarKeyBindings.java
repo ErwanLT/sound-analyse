@@ -5,7 +5,6 @@ import fr.eletutour.sound.constant.AudioConstants;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class GuitarKeyBindings {
 

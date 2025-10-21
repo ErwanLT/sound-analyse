@@ -2,7 +2,10 @@ package fr.eletutour.sound.analyser;
 
 import fr.eletutour.sound.constant.AudioConstants;
 
-import javax.sound.sampled.*;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.TargetDataLine;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;

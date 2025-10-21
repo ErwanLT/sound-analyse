@@ -6,7 +6,6 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class GuitarAudioProcessor implements Runnable {
 
