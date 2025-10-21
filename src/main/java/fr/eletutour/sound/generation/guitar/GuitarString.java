@@ -12,6 +12,7 @@ public class GuitarString {
     private final int capacity;
     private int tickCount = 0;
     private double envelope = 1.0;
+    private double lastFilterOutput = 0.0; // For the improved filter
 
     public GuitarString(double frequency) {
         this.capacity = (int) (AudioConstants.SAMPLE_RATE / frequency);
@@ -29,10 +30,10 @@ public class GuitarString {
         }
 
         double first = ringBuffer.poll();
-        double second = ringBuffer.peek() != null ? ringBuffer.peek() : 0.0;
 
-        // Karplus-Strong update: average the first two samples
-        double newSample = (first + second) * 0.5;
+        // A simple IIR low-pass filter for a warmer tone
+        double newSample = (first + lastFilterOutput) * 0.5;
+        lastFilterOutput = newSample;
         ringBuffer.add(newSample);
 
         // Apply a smooth exponential decay envelope, similar to the visual decay time constant
