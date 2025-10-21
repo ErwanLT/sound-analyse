@@ -54,8 +54,11 @@ public class VirtualGuitar extends JFrame {
         }
     }
 
+    private static final int NUM_STRINGS = 6;
+
     private class StringAction extends AbstractAction {
         private final int stringIndex;
+        private static final double SYMPATHETIC_RESONANCE_FACTOR = 0.15; // 15% of the energy
 
         StringAction(int stringIndex) {
             this.stringIndex = stringIndex;
@@ -63,9 +66,19 @@ public class VirtualGuitar extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // Replace the old string sound with the new one if played again
+            // Pluck the main string with full amplitude
             activeStrings.put(stringIndex, new GuitarString(STRING_FREQUENCIES[stringIndex]));
             guitarPanel.pluckString(stringIndex);
+
+            // Trigger sympathetic resonance in other strings
+            for (int i = 0; i < NUM_STRINGS; i++) {
+                if (i != stringIndex) {
+                    // Only replace if the string is not already ringing loudly
+                    if (!activeStrings.containsKey(i) || activeStrings.get(i).getVibrationAmplitude() < 0.1) {
+                        activeStrings.put(i, new GuitarString(STRING_FREQUENCIES[i], SYMPATHETIC_RESONANCE_FACTOR));
+                    }
+                }
+            }
         }
     }
 

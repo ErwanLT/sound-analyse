@@ -14,14 +14,18 @@ public class GuitarString {
     private double envelope = 1.0;
     private double lastFilterOutput = 0.0; // For the improved filter
 
-    public GuitarString(double frequency) {
+    public GuitarString(double frequency, double initialAmplitude) {
         this.capacity = (int) (AudioConstants.SAMPLE_RATE / frequency);
         this.ringBuffer = new LinkedList<>();
         Random random = new Random();
 
         for (int i = 0; i < capacity; i++) {
-            ringBuffer.add(random.nextDouble() - 0.5); // Initial burst of noise
+            ringBuffer.add((random.nextDouble() - 0.5) * initialAmplitude);
         }
+    }
+
+    public GuitarString(double frequency) {
+        this(frequency, 1.0); // Default constructor with full amplitude
     }
 
     public double getNextSample() {
