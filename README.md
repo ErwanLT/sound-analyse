@@ -4,12 +4,14 @@ Ce projet est une collection d'outils audio en Java, permettant à la fois l'ana
 
 ## Applications
 
-Le projet contient quatre applications principales :
+Le projet contient maintenant six applications principales :
 
 1.  **Analyseur de Fréquence (CLI) :** Capture l'audio du microphone et affiche la fréquence dominante en temps réel dans la console.
 2.  **Visualiseur de Spectre (GUI) :** Affiche une visualisation graphique du spectre de fréquences de l'audio capté par le microphone.
 3.  **Mini Synthétiseur (GUI) :** Un synthétiseur polyphonique complet avec des contrôles de mise en forme du son.
 4.  **Générateur de Son (GUI) :** Un autre synthétiseur avancé pour générer des sons et jouer des partitions.
+5.  **Batterie Virtuelle (GUI) :** Une batterie virtuelle simple dont les sons (kick, snare, hi-hat, cymbale) sont entièrement synthétisés et jouables au clavier.
+6.  **Guitare Virtuelle (GUI) :** Une guitare virtuelle à 6 cordes utilisant l'algorithme Karplus-Strong pour un son réaliste, avec animation des cordes et résonance sympathique.
 
 ## Technologies
 
@@ -85,4 +87,35 @@ Un synthétiseur avancé pour générer des sons et jouer des partitions.
 **Lancement :**
 ```bash
 mvn exec:java -Dexec.mainClass="fr.eletutour.sound.analyser.SoundGenerator"
+```
+
+### 5. Batterie Virtuelle (GUI)
+
+Une batterie virtuelle simple dont les sons sont entièrement synthétisés.
+
+**Fonctionnalités :**
+*   Jouable avec les touches du clavier :
+    *   `B` : Grosse Caisse (Kick)
+    *   `N` : Caisse Claire (Snare)
+    *   `H` : Hi-Hat
+    *   `C` : Cymbale
+
+**Lancement :**
+```bash
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.generation.drum.VirtualDrumkit"
+```
+
+### 6. Guitare Virtuelle (GUI)
+
+Une guitare virtuelle qui simule le son de cordes pincées grâce à l'algorithme Karplus-Strong.
+
+**Fonctionnalités :**
+*   Simulation réaliste de corde de guitare avec une décroissance naturelle du son.
+*   Résonance sympathique : les autres cordes vibrent légèrement pour un son plus riche.
+*   Visualisation des 6 cordes qui s'animent lorsqu'elles sont jouées.
+*   Jouable avec les touches du clavier (clavier AZERTY) : `Q, S, D, F, G, H`.
+
+**Lancement :**
+```bash
+mvn exec:java -Dexec.mainClass="fr.eletutour.sound.generation.guitar.VirtualGuitar"
 ```
