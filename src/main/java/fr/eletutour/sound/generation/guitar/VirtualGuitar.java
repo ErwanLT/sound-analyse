@@ -17,7 +17,7 @@ public class VirtualGuitar extends JFrame {
     private int capoFret = 0; // 0 means no capo, 1 means capo on 1st fret, etc.
 
     // Standard Tuning EADGBe
-    private static final double[] STRING_FREQUENCIES = {
+    private double[] currentStringFrequencies = { // Changed to non-static and non-final
         AudioConstants.noteFrequencies.get("E2"), // E String (thickest)
         AudioConstants.noteFrequencies.get("A2"), // A String
         AudioConstants.noteFrequencies.get("D3"), // D String
@@ -25,6 +25,37 @@ public class VirtualGuitar extends JFrame {
         AudioConstants.noteFrequencies.get("B3"), // B String
         AudioConstants.noteFrequencies.get("E4")  // e string (thinnest)
     };
+
+    // Define tuning presets
+    private final Map<String, double[]> tuningPresets = Map.of(
+        "Standard", new double[]{
+            AudioConstants.noteFrequencies.get("E2"),
+            AudioConstants.noteFrequencies.get("A2"),
+            AudioConstants.noteFrequencies.get("D3"),
+            AudioConstants.noteFrequencies.get("G3"),
+            AudioConstants.noteFrequencies.get("B3"),
+            AudioConstants.noteFrequencies.get("E4")
+        },
+        "Drop D", new double[]{
+            AudioConstants.noteFrequencies.get("D2"), // E string dropped to D
+            AudioConstants.noteFrequencies.get("A2"),
+            AudioConstants.noteFrequencies.get("D3"),
+            AudioConstants.noteFrequencies.get("G3"),
+            AudioConstants.noteFrequencies.get("B3"),
+            AudioConstants.noteFrequencies.get("E4")
+        },
+        "Open G", new double[]{
+            AudioConstants.noteFrequencies.get("D2"),
+            AudioConstants.noteFrequencies.get("G2"),
+            AudioConstants.noteFrequencies.get("D3"),
+            AudioConstants.noteFrequencies.get("G3"),
+            AudioConstants.noteFrequencies.get("B3"),
+            AudioConstants.noteFrequencies.get("D4")
+        }
+    );
+
+    private String[] tuningNames = tuningPresets.keySet().toArray(new String[0]);
+    private int currentTuningIndex = 0; // Index for tuningNames
 
     public VirtualGuitar() {
         setTitle("Guitare Virtuelle");
@@ -103,6 +134,19 @@ public class VirtualGuitar extends JFrame {
             im.put(KeyStroke.getKeyStroke("pressed " + key), "press_chord_" + key);
             am.put("press_chord_" + key, new ChordAction(chordShape));
         }
+
+        // Tuning controls
+        im.put(KeyStroke.getKeyStroke("pressed T"), "cycle_tuning");
+        am.put("cycle_tuning", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                currentTuningIndex = (currentTuningIndex + 1) % tuningNames.length;
+                currentStringFrequencies = tuningPresets.get(tuningNames[currentTuningIndex]);
+                // Optionally, clear active strings to prevent old frequencies from lingering
+                activeStrings.clear();
+                System.out.println("Tuning changed to: " + tuningNames[currentTuningIndex]);
+            }
+        });
     }
 
     private static final int NUM_STRINGS = 6;
@@ -117,7 +161,7 @@ public class VirtualGuitar extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            double originalFrequency = STRING_FREQUENCIES[stringIndex];
+            double originalFrequency = VirtualGuitar.this.currentStringFrequencies[stringIndex];
             double adjustedFrequency = originalFrequency * Math.pow(2, capoFret / 12.0);
 
             // Pluck the main string with full amplitude
@@ -127,7 +171,7 @@ public class VirtualGuitar extends JFrame {
             // Trigger sympathetic resonance in other strings
             for (int i = 0; i < NUM_STRINGS; i++) {
                 if (i != stringIndex) {
-                    double sympatheticOriginalFrequency = STRING_FREQUENCIES[i];
+                    double sympatheticOriginalFrequency = VirtualGuitar.this.currentStringFrequencies[i];
                     double sympatheticAdjustedFrequency = sympatheticOriginalFrequency * Math.pow(2, capoFret / 12.0);
 
                     // Only replace if the string is not already ringing loudly
@@ -154,7 +198,7 @@ public class VirtualGuitar extends JFrame {
                 int fretNumber = stringFret[1];
 
                 if (fretNumber != -1) { // If not muted
-                    double originalFrequency = STRING_FREQUENCIES[stringIndex];
+                    double originalFrequency = VirtualGuitar.this.currentStringFrequencies[stringIndex];
                     // Adjust frequency based on fret number and capo
                     double adjustedFrequency = originalFrequency * Math.pow(2, (fretNumber + capoFret) / 12.0);
 
@@ -176,7 +220,7 @@ public class VirtualGuitar extends JFrame {
                 if (!isPlayedInChord) {
                     // Only replace if the string is not already ringing loudly
                     if (!activeStrings.containsKey(i) || activeStrings.get(i).getVibrationAmplitude() < 0.1) {
-                        double sympatheticOriginalFrequency = STRING_FREQUENCIES[i];
+                        double sympatheticOriginalFrequency = VirtualGuitar.this.currentStringFrequencies[i];
                         double sympatheticAdjustedFrequency = sympatheticOriginalFrequency * Math.pow(2, capoFret / 12.0); // Sympathetic strings are affected by capo only
                         activeStrings.put(i, new GuitarString(sympatheticAdjustedFrequency, SYMPATHETIC_RESONANCE_FACTOR));
                     }
