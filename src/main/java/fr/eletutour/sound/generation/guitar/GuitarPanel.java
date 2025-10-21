@@ -8,10 +8,11 @@ public class GuitarPanel extends JPanel {
 
     private static final int NUM_STRINGS = 6;
     private final long[] pluckTimes = new long[NUM_STRINGS];
+    private int capoFret = 0; // Added capoFret field
 
     public GuitarPanel() {
         setBackground(new Color(30, 30, 30));
-        setPreferredSize(new Dimension(800, 400));
+        setPreferredSize(new Dimension(1200, 400));
 
         Timer timer = new Timer(16, e -> repaint()); // ~60 FPS
         timer.start();
@@ -23,6 +24,12 @@ public class GuitarPanel extends JPanel {
         }
     }
 
+    // Added setCapoFret method
+    public void setCapoFret(int capoFret) {
+        this.capoFret = capoFret;
+        repaint(); // Repaint to show the capo
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -31,6 +38,27 @@ public class GuitarPanel extends JPanel {
 
         int panelWidth = getWidth();
         int panelHeight = getHeight();
+
+        // Draw frets
+        g2d.setColor(new Color(100, 100, 100)); // Fret color
+        int fretStart = 50; // Same as string start
+        int fretEnd = panelWidth - 50; // Same as string end
+        int numFrets = 12; // Number of frets to draw
+        int fretSpacing = (fretEnd - fretStart) / (numFrets + 1); // Approximate spacing
+
+        for (int i = 0; i <= numFrets; i++) {
+            int x = fretStart + i * fretSpacing;
+            g2d.setStroke(new BasicStroke(i == 0 ? 5 : 2)); // Thicker for the nut (fret 0)
+            g2d.drawLine(x, panelHeight / (NUM_STRINGS + 1), x, panelHeight - panelHeight / (NUM_STRINGS + 1));
+        }
+
+        // Draw capo if active
+        if (capoFret > 0 && capoFret <= numFrets) {
+            g2d.setColor(new Color(50, 83, 200, 150)); // Capo color (semi-transparent red)
+            int capoX = fretStart + capoFret * fretSpacing - (fretSpacing / 2); // Position capo in the middle of the fret
+            g2d.fillRect(capoX, panelHeight / (NUM_STRINGS + 1) - 5, fretSpacing, panelHeight - panelHeight / (NUM_STRINGS + 1) + 10);
+        }
+
 
         for (int i = 0; i < NUM_STRINGS; i++) {
             long timeSincePluck = System.currentTimeMillis() - pluckTimes[i];

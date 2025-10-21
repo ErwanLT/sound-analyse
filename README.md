@@ -114,6 +114,7 @@ Une guitare virtuelle qui simule le son de cordes pincées grâce à l'algorithm
 *   Résonance sympathique : les autres cordes vibrent légèrement pour un son plus riche.
 *   Visualisation des 6 cordes qui s'animent lorsqu'elles sont jouées.
 *   Jouable avec les touches du clavier (clavier AZERTY), de la plus aigue à la plus grave : `Q, S, D, F, G, H`.
+*   **Capo Virtuel :** Déplacez le capo le long du manche pour changer la tonalité des cordes. Utilisez les flèches **GAUCHE** et **DROITE** pour ajuster la position du capo (de la frette 0 à 12).
 
 **Lancement :**
 ```bash

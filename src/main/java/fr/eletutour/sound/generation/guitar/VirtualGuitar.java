@@ -14,6 +14,7 @@ public class VirtualGuitar extends JFrame {
 
     private final GuitarPanel guitarPanel;
     private final Map<Integer, GuitarString> activeStrings = new ConcurrentHashMap<>();
+    private int capoFret = 0; // 0 means no capo, 1 means capo on 1st fret, etc.
 
     // Standard Tuning EADGBe
     private static final double[] STRING_FREQUENCIES = {
@@ -35,7 +36,6 @@ public class VirtualGuitar extends JFrame {
         setupKeyBindings();
 
         pack();
-        setResizable(false);
         setLocationRelativeTo(null);
         setVisible(true);
 
@@ -64,6 +64,29 @@ public class VirtualGuitar extends JFrame {
             im.put(KeyStroke.getKeyStroke("pressed " + key), "press_" + key);
             am.put("press_" + key, new StringAction(stringIndex));
         }
+
+        // Capo controls
+        im.put(KeyStroke.getKeyStroke("RIGHT"), "capo_up");
+        am.put("capo_up", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (capoFret < 12) { // Max 12 frets for capo
+                    capoFret++;
+                    guitarPanel.setCapoFret(capoFret);
+                }
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke("LEFT"), "capo_down");
+        am.put("capo_down", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (capoFret > 0) {
+                    capoFret--;
+                    guitarPanel.setCapoFret(capoFret);
+                }
+            }
+        });
     }
 
     private static final int NUM_STRINGS = 6;
@@ -78,16 +101,22 @@ public class VirtualGuitar extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            double originalFrequency = STRING_FREQUENCIES[stringIndex];
+            double adjustedFrequency = originalFrequency * Math.pow(2, capoFret / 12.0);
+
             // Pluck the main string with full amplitude
-            activeStrings.put(stringIndex, new GuitarString(STRING_FREQUENCIES[stringIndex]));
+            activeStrings.put(stringIndex, new GuitarString(adjustedFrequency));
             guitarPanel.pluckString(stringIndex);
 
             // Trigger sympathetic resonance in other strings
             for (int i = 0; i < NUM_STRINGS; i++) {
                 if (i != stringIndex) {
+                    double sympatheticOriginalFrequency = STRING_FREQUENCIES[i];
+                    double sympatheticAdjustedFrequency = sympatheticOriginalFrequency * Math.pow(2, capoFret / 12.0);
+
                     // Only replace if the string is not already ringing loudly
                     if (!activeStrings.containsKey(i) || activeStrings.get(i).getVibrationAmplitude() < 0.1) {
-                        activeStrings.put(i, new GuitarString(STRING_FREQUENCIES[i], SYMPATHETIC_RESONANCE_FACTOR));
+                        activeStrings.put(i, new GuitarString(sympatheticAdjustedFrequency, SYMPATHETIC_RESONANCE_FACTOR));
                     }
                 }
             }
