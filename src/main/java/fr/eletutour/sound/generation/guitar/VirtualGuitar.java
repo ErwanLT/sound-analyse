@@ -56,6 +56,7 @@ public class VirtualGuitar extends JFrame {
 
     private String[] tuningNames = tuningPresets.keySet().toArray(new String[0]);
     private int currentTuningIndex = 0; // Index for tuningNames
+    private float distortionLevel = 0.0f; // 0.0 to 1.0
 
     public VirtualGuitar() {
         setTitle("Guitare Virtuelle");
@@ -145,6 +146,25 @@ public class VirtualGuitar extends JFrame {
                 // Optionally, clear active strings to prevent old frequencies from lingering
                 activeStrings.clear();
                 System.out.println("Tuning changed to: " + tuningNames[currentTuningIndex]);
+            }
+        });
+
+        // Distortion controls
+        im.put(KeyStroke.getKeyStroke("pressed U"), "distortion_up");
+        am.put("distortion_up", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                distortionLevel = Math.min(1.0f, distortionLevel + 0.1f);
+                System.out.println("Distortion: " + String.format("%.1f", distortionLevel));
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke("pressed J"), "distortion_down");
+        am.put("distortion_down", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                distortionLevel = Math.max(0.0f, distortionLevel - 0.1f);
+                System.out.println("Distortion: " + String.format("%.1f", distortionLevel));
             }
         });
     }
@@ -245,6 +265,14 @@ public class VirtualGuitar extends JFrame {
                         if (!string.isActive()) {
                             activeStrings.remove(entry.getKey());
                         }
+                    }
+
+                    // Apply distortion
+                    if (distortionLevel > 0.0f) {
+                        // Simple soft clipping using tanh
+                        // The 'gain' factor amplifies the signal before tanh, increasing distortion
+                        double gain = 1.0 + (distortionLevel * 5.0); // Adjust gain for desired distortion intensity
+                        mixedSample = Math.tanh(mixedSample * gain) / Math.tanh(gain);
                     }
 
                     mixedSample = Math.max(-1.0, Math.min(1.0, mixedSample * 0.5)); // Reduce volume to prevent clipping

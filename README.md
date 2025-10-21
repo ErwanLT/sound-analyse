@@ -120,6 +120,8 @@ Une guitare virtuelle qui simule le son de cordes pincées grâce à l'algorithm
     *   `Z` : Sol Majeur
     *   `E` : Ré Majeur
     *   `R` : Mi Mineur
+*   **Accordages :** Changez l'accordage de la guitare (Standard, Drop D, Open G). Appuyez sur la touche **T** pour cycler entre les accordages disponibles.
+*   **Distorsion :** Ajoutez un effet de distorsion au son de la guitare. Utilisez la touche **U** pour augmenter la distorsion et la touche **J** pour la diminuer.
 
 **Lancement :**
 ```bash
