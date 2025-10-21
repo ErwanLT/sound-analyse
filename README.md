@@ -113,7 +113,7 @@ Une guitare virtuelle qui simule le son de cordes pincées grâce à l'algorithm
 *   Simulation réaliste de corde de guitare avec une décroissance naturelle du son.
 *   Résonance sympathique : les autres cordes vibrent légèrement pour un son plus riche.
 *   Visualisation des 6 cordes qui s'animent lorsqu'elles sont jouées.
-*   Jouable avec les touches du clavier (clavier AZERTY) : `Q, S, D, F, G, H`.
+*   Jouable avec les touches du clavier (clavier AZERTY), de la plus aigue à la plus grave : `Q, S, D, F, G, H`.
 
 **Lancement :**
 ```bash

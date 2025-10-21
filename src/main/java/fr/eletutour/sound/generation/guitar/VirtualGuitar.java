@@ -47,10 +47,22 @@ public class VirtualGuitar extends JFrame {
         InputMap im = contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = contentPane.getActionMap();
 
-        char[] keys = {'H', 'G', 'F', 'D', 'S', 'Q'}; // Mapped from thin to thick string
-        for (int i = 0; i < keys.length; i++) {
-            im.put(KeyStroke.getKeyStroke("pressed " + keys[i]), "press_" + i);
-            am.put("press_" + i, new StringAction(i));
+        // Ergonomic AZERTY mapping from key to string index (0=E2 thickest, 5=E4 thinnest)
+        // Keys are mapped from high pitch (thinnest string) to low pitch (thickest string)
+        Map<Character, Integer> keyToString = Map.of(
+            'Q', 5, // E4 (aigu)
+            'S', 4, // B3
+            'D', 3, // G3
+            'F', 2, // D3
+            'G', 1, // A2
+            'H', 0  // E2 (grave)
+        );
+
+        for (Map.Entry<Character, Integer> entry : keyToString.entrySet()) {
+            char key = entry.getKey();
+            int stringIndex = entry.getValue();
+            im.put(KeyStroke.getKeyStroke("pressed " + key), "press_" + key);
+            am.put("press_" + key, new StringAction(stringIndex));
         }
     }
 
