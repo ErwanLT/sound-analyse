@@ -114,10 +114,8 @@ enum DrumSound {
 
 class DrumVoice {
     private final DrumSound sound;
-    private final Random random;
     private boolean active = true;
     private double position = 0;
-    private double amplitude = 1.0;
     private double pitch;
 
     // For snare noise
@@ -130,7 +128,6 @@ class DrumVoice {
 
     DrumVoice(DrumSound sound, Random random) {
         this.sound = sound;
-        this.random = random;
         this.pitch = 1.0;
 
         if (sound == DrumSound.SNARE || sound == DrumSound.HIHAT_CLOSED) {
@@ -161,10 +158,12 @@ class DrumVoice {
 
         double sample = 0;
         double envelope = 0;
+        double noise = 0;
+        double duration = 0;
 
         switch (sound) {
             case KICK:
-                double duration = 0.15; // 150ms
+                duration = 0.15; // 150ms
                 if (position > duration) {
                     active = false;
                     return 0.0;
@@ -182,7 +181,7 @@ class DrumVoice {
                 }
                 envelope = Math.pow(1.0 - (position / duration), 3);
                 double tone = Math.sin(position * 2 * Math.PI * 180.0);
-                double noise = noiseBuffer[noisePosition++];
+                noise = noiseBuffer[noisePosition++];
                 sample = (tone * 0.4) + (noise * 0.6);
                 break;
 

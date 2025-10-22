@@ -7,15 +7,8 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 import java.util.Map;
 
-public class GuitarAudioProcessor implements Runnable {
-
-    private final Map<Integer, GuitarString> activeStrings;
-    private final VirtualGuitar virtualGuitar;
-
-    public GuitarAudioProcessor(VirtualGuitar virtualGuitar, Map<Integer, GuitarString> activeStrings) {
-        this.virtualGuitar = virtualGuitar;
-        this.activeStrings = activeStrings;
-    }
+public record GuitarAudioProcessor(VirtualGuitar virtualGuitar,
+                                   Map<Integer, GuitarString> activeStrings) implements Runnable {
 
     @Override
     public void run() {

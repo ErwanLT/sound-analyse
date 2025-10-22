@@ -9,13 +9,12 @@ import java.util.Random;
 public class GuitarString {
 
     private final Queue<Double> ringBuffer;
-    private final int capacity;
     private int tickCount = 0;
     private double envelope = 1.0;
     private double lastFilterOutput = 0.0; // For the improved filter
 
     public GuitarString(double frequency, double initialAmplitude) {
-        this.capacity = (int) (AudioConstants.SAMPLE_RATE / frequency);
+        int capacity = (int) (AudioConstants.SAMPLE_RATE / frequency);
         this.ringBuffer = new LinkedList<>();
         Random random = new Random();
 

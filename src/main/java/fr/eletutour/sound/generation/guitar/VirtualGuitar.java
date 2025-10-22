@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class VirtualGuitar extends JFrame {
 
-    private final GuitarPanel guitarPanel;
-    private final Map<Integer, GuitarString> activeStrings = new ConcurrentHashMap<>();
     private int capoFret = 0; // 0 means no capo, 1 means capo on 1st fret, etc.
 
     // Standard Tuning EADGBe
@@ -29,9 +27,10 @@ public class VirtualGuitar extends JFrame {
         setTitle("Guitare Virtuelle");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        guitarPanel = new GuitarPanel();
+        GuitarPanel guitarPanel = new GuitarPanel();
         add(guitarPanel);
 
+        Map<Integer, GuitarString> activeStrings = new ConcurrentHashMap<>();
         GuitarKeyBindings guitarKeyBindings = new GuitarKeyBindings(this, guitarPanel, activeStrings);
         guitarKeyBindings.setupBindings((JPanel) getContentPane());
 

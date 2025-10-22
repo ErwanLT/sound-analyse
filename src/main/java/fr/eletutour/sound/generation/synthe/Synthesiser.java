@@ -186,8 +186,7 @@ public class Synthesiser extends JFrame {
                     else { currentAmplitude = timeInState / attackTime; }
                     break;
                 case DECAY:
-                    if (decayTime <= 0) { currentAmplitude = sustainLevel; state = State.SUSTAIN; break; }
-                    if (timeInState >= decayTime) { currentAmplitude = sustainLevel; state = State.SUSTAIN; } 
+                    if (timeInState >= decayTime) { currentAmplitude = sustainLevel; state = State.SUSTAIN; }
                     else { currentAmplitude = 1.0 - (1.0 - sustainLevel) * (timeInState / decayTime); }
                     break;
                 case SUSTAIN:

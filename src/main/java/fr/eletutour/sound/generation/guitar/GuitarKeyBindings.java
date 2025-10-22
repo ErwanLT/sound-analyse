@@ -49,7 +49,7 @@ public class GuitarKeyBindings {
         }
     );
 
-    private String[] tuningNames;
+    private final String[] tuningNames;
 
     public GuitarKeyBindings(VirtualGuitar virtualGuitar, GuitarPanel guitarPanel, Map<Integer, GuitarString> activeStrings) {
         this.virtualGuitar = virtualGuitar;
